@@ -1,0 +1,3 @@
+[submodule "src/visual_servoing_capstone"]
+	path = src/visual_servoing_capstone
+	url = https://github.com/innhyung/visual_servoing_capstone.git
