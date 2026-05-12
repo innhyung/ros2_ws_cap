@@ -95,12 +95,25 @@ fi
 
 # 4) Start ros2 launch -> PC begins listening on 50001-50003
 echo
-info "Starting ros2 launch — PC will start listening on ports 50001/50002/50003"
-echo "   ====> WHEN YOU SEE  'Robot connected to reverse interface'  IS NOT SHOWN YET,"
-echo "   ====> WAIT FOR THE LINE  'controller_manager: ... Hz'  TO APPEAR,"
-echo "   ====> THEN GO TO THE PENDANT AND PRESS  ▶ Play  WITHIN A FEW SECONDS."
+info "드라이버 시작 — 0.6초 후 pendant Play 자동 전송 시도"
+echo "   (Remote Control 모드가 아닐 경우 'controller_manager: ... Hz' 뜨면 즉시 ▶ Play 클릭)"
 echo
-sleep 1
+
+# Hardware interface가 reverse port 열기까지 ~0.5s 소요.
+# 0.6s 후 play 전송 → URCap이 연결 → config package 수신 → 1초 timeout 통과
+(
+  sleep 0.6
+  python3 -c "
+import socket, time
+try:
+    s = socket.socket(); s.settimeout(3.0)
+    s.connect(('$ROBOT_IP', 29999))
+    s.recv(2048)
+    s.sendall(b'play\n'); time.sleep(0.3); s.recv(2048)
+    s.close()
+except: pass
+"
+) &
 
 exec ros2 launch ur_robot_driver ur_control.launch.py \
   ur_type:=$UR_TYPE \
